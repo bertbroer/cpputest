@@ -2,7 +2,7 @@
 FROM gcc
 
 LABEL \
- Description="CPPUTEST v3.8 and gcovr" 
+ Description="CPPUTEST v4.0 and gcovr" 
 
 RUN apt-get update && apt-get install -y --no-install-recommends git python-pip
   
@@ -10,9 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends git python-pip
 # Download and extract the CPPUTEST files
 #
 RUN mkdir -p /cpputest
-RUN wget https://github.com/cpputest/cpputest/releases/download/v3.8/cpputest-3.8.tar.gz \
-    && tar -xvf cpputest-3.8.tar.gz --strip-components=1 -C /cpputest \
-    && rm cpputest-3.8.tar.gz
+RUN wget https://github.com/cpputest/cpputest/releases/download/v4.0/cpputest-4.0.tar.gz \
+    && tar -xvf cpputest-4.0.tar.gz --strip-components=1 -C /cpputest \
+    && rm cpputest-4.0.tar.gz
 
 #
 # Set up the CPPUTEST path
