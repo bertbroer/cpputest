@@ -4,7 +4,7 @@ FROM gcc
 LABEL \
  Description="CPPUTEST v4.0 and gcovr" 
 
-RUN apt-get update && apt-get install -y --no-install-recommends git python-pip
+RUN apt-get update && apt-get install -y --no-install-recommends git python-pip python-setuptools
   
 #  
 # Download and extract the CPPUTEST files
