@@ -29,9 +29,16 @@ RUN ./configure
 RUN make tdd
 
 #
-#Install GCOVR
+# Install GCOVR
 #
 RUN pip install gcovr
+
+#
+# Command aliases
+#
+RUN echo "alias cpputest=make -s -j -C unittests all" >> ~/.bash_profile
+RUN echo "alias coverage=cd unittests && make -s -j CPPUTEST_USE_GCOV=Y gcov | grep -vE '.*\% of|.*\.gcov' && mkdir -p coverage && gcovr -r ../ --object-directory=. --exclude='.*mock.cpp' --exclude='.*tests.cpp' --exclude='.*.cpp$' --exclude='.*.h$' --html --html-detail --gcov-exclude=supports --exclude-directories=.*tests\/ -o coverage/coverage.html && rm -rf gcov" >> ~/.bash_profile
+RUN echo "alias coverage-clean=cd unittests && make clean && make -s -j CPPUTEST_USE_GCOV=Y gcov | grep -vE '.*\% of|.*\.gcov' && mkdir -p coverage && gcovr -r ../ --object-directory=. --exclude='.*mock.cpp' --exclude='.*tests.cpp' --exclude='.*.cpp$' --exclude='.*.h$' --html --html-detail --gcov-exclude=supports --exclude-directories=.*tests\/ -o coverage/coverage.html && rm -rf gcov" >> ~/.bash_profile
 
 RUN mkdir /project
 WORKDIR /project
