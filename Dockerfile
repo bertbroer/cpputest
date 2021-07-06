@@ -17,7 +17,6 @@ ENV PATH="/venv/bin:$PATH"
 # install requirements
 RUN pip3 install --no-cache-dir wheel
 RUN pip3 install --no-cache-dir gcovr
-RUN pip3 install --no-cache-dir astyle
 
 # Download and extract the CPPUTEST files
 RUN mkdir -p /cpputest
@@ -39,7 +38,7 @@ FROM ubuntu:20.04 as runner-image
 # avoid stuck build due to user prompt
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3-venv build-essential git && \
+RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3-venv build-essential git astyle && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder-image /cpputest /cpputest
