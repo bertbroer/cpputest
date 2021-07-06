@@ -17,6 +17,7 @@ ENV PATH="/venv/bin:$PATH"
 # install requirements
 RUN pip3 install --no-cache-dir wheel
 RUN pip3 install --no-cache-dir gcovr
+RUN pip3 install --no-cache-dir astyle
 
 # Download and extract the CPPUTEST files
 RUN mkdir -p /cpputest
