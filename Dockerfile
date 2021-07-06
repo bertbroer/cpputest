@@ -1,44 +1,66 @@
+########################################################################################################################
+# Builder image
+########################################################################################################################
+FROM ubuntu:20.04 as builder-image
 
-FROM gcc
+# avoid stuck build due to user prompt
+ARG DEBIAN_FRONTEND=noninteractive
 
-LABEL \
- Description="CPPUTEST v4.0 and gcovr" 
+RUN apt-get update && apt-get install --no-install-recommends -y python3 python3-dev python3-venv python3-pip python3-wheel wget build-essential automake autoconf libtool && \
+	apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y --no-install-recommends git python-pip python-setuptools
-  
-#  
+# create and activate virtual environment
+# using final folder name to avoid path issues with packages
+RUN python3 -m venv /venv
+ENV PATH="/venv/bin:$PATH"
+
+# install requirements
+RUN pip3 install --no-cache-dir wheel
+RUN pip3 install --no-cache-dir gcovr
+
 # Download and extract the CPPUTEST files
-#
 RUN mkdir -p /cpputest
 RUN wget https://github.com/cpputest/cpputest/releases/download/v4.0/cpputest-4.0.tar.gz \
     && tar -xvf cpputest-4.0.tar.gz --strip-components=1 -C /cpputest \
     && rm cpputest-4.0.tar.gz
 
-#
-# Set up the CPPUTEST path
-#
-ENV PATH PATH=${PATH}:/cpputest
-ENV CPPUTEST_HOME=/cpputest
-  
-#  
 # Build CPPUTEST
-#
 WORKDIR /cpputest
 RUN autoreconf . -i
 RUN ./configure
 RUN make tdd
 
-#
-# Install GCOVR
-#
-RUN pip install gcovr
+########################################################################################################################
+# Runner image image
+########################################################################################################################
+FROM ubuntu:20.04 as runner-image
 
-#
-# Command aliases
-#
-RUN echo "alias cpputest=\'make -s -j -C unittests all\'" >> ~/.bashrc
-RUN echo "alias coverage=\'cd unittests && make -s -j CPPUTEST_USE_GCOV=Y gcov | grep -vE '.*\% of|.*\.gcov' && mkdir -p coverage && gcovr -r ../ --object-directory=. --exclude='.*mock.cpp' --exclude='.*tests.cpp' --exclude='.*.cpp$' --exclude='.*.h$' --html --html-detail --gcov-exclude=supports --exclude-directories=.*tests\/ -o coverage/coverage.html && rm -rf gcov\'" >> ~/.bashrc
-RUN echo "alias coverage-\'clean=cd unittests && make clean && make -s -j CPPUTEST_USE_GCOV=Y gcov | grep -vE '.*\% of|.*\.gcov' && mkdir -p coverage && gcovr -r ../ --object-directory=. --exclude='.*mock.cpp' --exclude='.*tests.cpp' --exclude='.*.cpp$' --exclude='.*.h$' --html --html-detail --gcov-exclude=supports --exclude-directories=.*tests\/ -o coverage/coverage.html && rm -rf gcov\'" >> ~/.bashrc
+# avoid stuck build due to user prompt
+ARG DEBIAN_FRONTEND=noninteractive
 
-RUN mkdir /project
-WORKDIR /project
+RUN apt-get update && apt-get install --no-install-recommends -y python3 python3-venv make && \
+	apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder-image /cpputest /cpputest
+
+# Set up the CPPUTEST path
+ENV PATH="/cpputest:$PATH"
+ENV CPPUTEST_HOME=/cpputest
+
+# Turns off buffering for easier container logging
+ENV PYTHONUNBUFFERED 1
+
+# Create user
+RUN useradd --create-home myuser
+COPY --from=builder-image /venv /home/myuser/venv
+
+USER myuser
+RUN mkdir /home/myuser/code
+WORKDIR /home/myuser/code
+
+# make sure all messages always reach console
+ENV PYTHONUNBUFFERED=1
+
+# activate virtual environment
+ENV VIRTUAL_ENV=/home/myuser/venv
+ENV PATH="/home/myuser/venv/bin:$PATH"
