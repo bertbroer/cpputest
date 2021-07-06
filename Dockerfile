@@ -64,3 +64,6 @@ ENV PYTHONUNBUFFERED=1
 # activate virtual environment
 ENV VIRTUAL_ENV=/venv
 ENV PATH="/venv/bin:$PATH"
+
+# Set the bash shell
+ENV SHELL=/bin/bash
