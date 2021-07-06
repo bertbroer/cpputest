@@ -38,7 +38,7 @@ FROM ubuntu:20.04 as runner-image
 # avoid stuck build due to user prompt
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install --no-install-recommends -y python3 python3-venv make && \
+RUN apt-get update && apt-get install --no-install-recommends -y python3 python3-venv build-essential git && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder-image /cpputest /cpputest
