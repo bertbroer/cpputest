@@ -38,8 +38,15 @@ FROM ubuntu:20.04 as runner-image
 # avoid stuck build due to user prompt
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3-venv build-essential git astyle && \
+RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3-venv build-essential git astyle locales && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Set locales. Needed by Astyle.
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
+ENV LANG en_US.UTF-8  
+ENV LANGUAGE en_US:en  
+ENV LC_ALL en_US.UTF-8
 
 COPY --from=builder-image /cpputest /cpputest
 
